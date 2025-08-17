@@ -1,36 +1,137 @@
-<!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gestión de Tareas - Frontend</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistema de Gestión de Tareas</title>
+  <meta name="description" content="App de tareas con tablero Kanban, filtros y modales" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><rect width='256' height='256' rx='56' fill='%23111'/><path d='M64 128h128M64 176h88M64 80h72' stroke='%23fff' stroke-width='20' stroke-linecap='round'/></svg>">
+
+  <!-- Tailwind CSS via CDN (solo para demo/presentación) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { colors: { brand: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81' } } } } };</script>
+  
+  <!-- SortableJS para drag & drop del tablero -->
+  <script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+  <!-- Estilos opcionales propios -->
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body class="p-4">
-
-  <div class="container">
-    <h1 class="mb-4">Gestión de Tareas</h1>
-
-    <form id="task-form" class="mb-4">
-      <input type="hidden" id="task-id" value="">
-      <div class="mb-2">
-        <input id="titulo" class="form-control" placeholder="Título" required>
+<body class="h-full bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 text-slate-800 selection:bg-brand-200 selection:text-brand-900">
+  <!-- Topbar -->
+  <header class="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/70 bg-white/60 border-b border-white/50">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm">✓</span>
+        <h1 class="text-xl sm:text-2xl font-semibold tracking-tight">Sistema de Gestión de Tareas</h1>
       </div>
-      <div class="mb-2">
-        <textarea id="descripcion" class="form-control" placeholder="Descripción" rows="3"></textarea>
+      <div class="ms-auto flex items-center gap-2">
+        <button id="refreshBtn" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium shadow-sm hover:bg-slate-50 active:scale-[.99]">
+          <span>Actualizar</span>
+        </button>
+        <button id="newTaskBtn" class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 active:scale-[.99]">
+          <span>Nueva tarea</span>
+        </button>
       </div>
-      <div class="d-flex gap-2">
-        <button class="btn btn-primary" type="submit">Guardar</button>
-        <button id="btn-cancel" type="button" class="btn btn-secondary">Cancelar</button>
-      </div>
-    </form>
+    </div>
+  </header>
 
-    <h3>Lista de Tareas</h3>
-    <ul id="task-list" class="list-group"></ul>
+  <!-- Controles -->
+  <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <label class="md:col-span-2">
+        <span class="sr-only">Buscar</span>
+        <input id="searchInput" type="search" placeholder="Buscar por título, asignado, prioridad..." class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 shadow-sm outline-none focus:ring-2 focus:ring-brand-400" />
+      </label>
+      <label>
+        <span class="sr-only">Estado</span>
+        <select id="estadoFilter" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 shadow-sm focus:ring-2 focus:ring-brand-400">
+          <option value="">Todos los estados</option>
+          <option value="PENDIENTE">Pendiente</option>
+          <option value="EN_PROGRESO">En progreso</option>
+          <option value="COMPLETADA">Completada</option>
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Prioridad</span>
+        <select id="prioridadFilter" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 shadow-sm focus:ring-2 focus:ring-brand-400">
+          <option value="">Todas las prioridades</option>
+          <option>ALTA</option>
+          <option>MEDIA</option>
+          <option>BAJA</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- KPIs -->
+    <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="kpis">
+      <!-- Se llenan por JS -->
+    </div>
+  </section>
+
+  <!-- Tablero Kanban -->
+  <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-24">
+    <div class="grid gap-4 md:grid-cols-3" id="kanban">
+      <!-- Columnas generadas por JS -->
+    </div>
+
+    <p id="emptyState" class="hidden mt-8 text-center text-slate-500">No hay tareas para mostrar.</p>
+  </main>
+
+  <!-- Modal Crear/Editar -->
+  <div id="taskModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/40"></div>
+    <div class="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl">
+      <form id="taskForm" class="p-5 space-y-4">
+        <div class="flex items-start justify-between">
+          <h2 id="modalTitle" class="text-lg font-semibold">Nueva tarea</h2>
+          <button type="button" id="closeModal" class="rounded-lg px-3 py-1 text-slate-500 hover:bg-slate-100">Cerrar</button>
+        </div>
+        <input type="hidden" id="taskId" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label class="space-y-1">
+            <span class="text-sm">Título</span>
+            <input id="titulo" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-brand-400" />
+          </label>
+          <label class="space-y-1">
+            <span class="text-sm">Asignado a</span>
+            <input id="asignadoA" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-brand-400" />
+          </label>
+          <label class="space-y-1 sm:col-span-2">
+            <span class="text-sm">Descripción</span>
+            <textarea id="descripcion" rows="3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-brand-400"></textarea>
+          </label>
+          <label class="space-y-1">
+            <span class="text-sm">Estado</span>
+            <select id="estado" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-brand-400">
+              <option value="PENDIENTE">Pendiente</option>
+              <option value="EN_PROGRESO">En progreso</option>
+              <option value="COMPLETADA">Completada</option>
+            </select>
+          </label>
+          <label class="space-y-1">
+            <span class="text-sm">Prioridad</span>
+            <select id="prioridad" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-brand-400">
+              <option>MEDIA</option>
+              <option>ALTA</option>
+              <option>BAJA</option>
+            </select>
+          </label>
+          <label class="space-y-1">
+            <span class="text-sm">Fecha entrega</span>
+            <input id="fechaEntrega" type="date" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-brand-400" />
+          </label>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" id="deleteBtn" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-rose-700 hover:bg-rose-100">Eliminar</button>
+          <button class="rounded-xl bg-brand-600 px-4 py-2 font-semibold text-white hover:bg-brand-700">Guardar</button>
+        </div>
+      </form>
+    </div>
   </div>
 
-  <script src="app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Toast -->
+  <div id="toast" class="pointer-events-none fixed bottom-4 left-1/2 z-50 hidden -translate-x-1/2 rounded-xl bg-slate-900 px-4 py-2 text-white shadow-lg"></div>
+
+  <script src="app.js" defer></script>
 </body>
 </html>

@@ -1,71 +1,14 @@
-/* =========================
-   Estilos generales
-========================= */
-body {
-  background: linear-gradient(135deg, #f3e8ff, #e0c3fc);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  min-height: 100vh;
-}
+/* Scrollbar suave en navegadores basados en WebKit */
+*::-webkit-scrollbar { height: 10px; width: 10px; }
+*::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+*::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-/* =========================
-   Títulos
-========================= */
-h1, h3 {
-  color: #4b0082; /* Indigo */
-  font-weight: bold;
-  text-align: center;
-}
+/* Tarjetas draggable: elevar al arrastrar */
+.card-dragging { outline: 2px dashed #6366f1; outline-offset: 2px; }
 
-/* =========================
-   Formulario
-========================= */
-form {
-  background: #ffffffcc;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(75, 0, 130, 0.2);
-}
+/* Columnas: sombreado sutil */
+.kanban-col { background: white; border: 1px solid rgba(148, 163, 184, .25); }
 
-form input, form textarea {
-  border: 1px solid #d8b4fe;
-}
-
-form button {
-  background: #6a11cb;
-  border: none;
-}
-
-form button:hover {
-  background: #5b0eb3;
-}
-
-/* =========================
-   Lista de tareas
-========================= */
-#task-list .list-group-item {
-  background: #ffffffdd;
-  border: none;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  box-shadow: 0 2px 4px rgba(75, 0, 130, 0.1);
-}
-
-#task-list .btn {
-  font-size: 0.8rem;
-}
-
-.badge {
-  font-size: 0.75rem;
-  padding: 5px 8px;
-}
-
-/* =========================
-   Botón cancelar
-========================= */
-#btn-cancel {
-  background: #aaa;
-}
-
-#btn-cancel:hover {
-  background: #888;
-}
+/* Animación de aparición */
+.fade-in { animation: fadeIn .18s ease-out both; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: none } }
